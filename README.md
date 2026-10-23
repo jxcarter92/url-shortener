@@ -50,7 +50,7 @@ pvc.yaml          1Gi persistent disk for Redis
 start.sh          Starts the cluster and waits until everything is ready
 stop.sh           Stops the cluster
 deploy.sh         Builds, loads, and rolls out a new version
-port.sh           Runs kubectl port-forward service/url-shortener 8080:80
+port.sh           Opens a tunnel to the app at location kubectl port-forward service/url-shortener                    8080:80
 ```
 
 ## Getting Started
@@ -77,6 +77,7 @@ kubectl apply -f .
 ./start.sh            # start the cluster and wait until ready
 ./deploy.sh v2        # ship a new version (use a new tag each time)
 ./stop.sh             # stop the cluster
+./port.sh             # runs kubectl port-forward service/url-shortener 8080:80
 ```
 
 ## Usage
