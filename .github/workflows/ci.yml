@@ -16,7 +16,7 @@ jobs:
       - name: Scan image with Trivy
         uses: aquasecurity/trivy-action@v0.35.0
         with:
-          image-ref: url-shortener:${{github.com}}
+          image-ref: url-shortener:${{ github.sha }}
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: "1"
