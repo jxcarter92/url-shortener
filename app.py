@@ -10,7 +10,7 @@ r = redis.Redis(host=os.environ.get("REDIS_HOST","redis"), port=6379, password=o
 @app.route("/")
 def hello_world():
     name = socket.gethostname()
-    return f"localhost:8080/{name}"
+    return f"localhost:8080/ {name}"
 
 @app.route("/shorten", methods=["POST"])
 def shorten():
