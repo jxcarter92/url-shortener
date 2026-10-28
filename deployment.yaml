@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: url-shortener
-        image: url-shortener:v10
+        image: ghcr.io/jxcarter92/url-shortener:b7312fd130d736ce575fe980bdef8db6a16599b3
         ports:
         - containerPort: 5000
         envFrom:
