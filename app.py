@@ -31,5 +31,19 @@ def health_check():
     r.ping()
     return  {"status": "ok", "redis": "connected", "pod": socket.gethostname()}
 
+@app.route("/links")
+def stored_links():
+    links = {}#empty dict to store old links
+    for key in r.scan_iter():#loop through keys: in redis using r.scan_iter, for each code, look up its URL,
+        links[key] = r.get(key)#push keys:values from redis to new dict
+    
+    count = len(links)#length of dict with stored keys
+    
+    return {
+        "message": f"successfully retrieved {count} links",
+        "links": links, 
+        "links_stored": count
+        }#return, best practice is to have all keys: lowercase and no spaces!
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
