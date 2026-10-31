@@ -14,9 +14,15 @@ def hello_world():
 
 @app.route("/shorten", methods=["POST"])
 def shorten():
-    long_url = request.form["url"]
+    long_url = request.form["url"]#-> url:https://""/jxcarter92
+    reverse_key = f"url:{long_url}"# duplicate key same output: url:https://""/jxcarter92
+    exiting_code = r.get(reverse_key)#
+    if exiting_code: 
+        return f"Link already in use. Use code: {exiting_code}\n"#shows the inital key value for url
+
     code = secrets.token_urlsafe(4)#randomizes the url to 4 bites > "55vsDQ"
-    r.set(code, long_url)
+    r.set(code, long_url)#sets the initial key value
+    r.set(reverse_key, code)#saves one entry in Redis: the reverse key as the name, and the short code as the value.
     return f"{code}\n"
 
 @app.route("/<code>")
@@ -35,6 +41,8 @@ def health_check():
 def stored_links():
     links = {}#empty dict to store old links
     for key in r.scan_iter():#loop through keys: in redis using r.scan_iter, for each code, look up its URL,
+        if(key.startswith("url:")):#skip any tracking keys that start with the same url
+            continue#immediately stops executing the current cycl and jumps straig to the next item
         links[key] = r.get(key)#push keys:values from redis to new dict
     
     count = len(links)#length of dict with stored keys
