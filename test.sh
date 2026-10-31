@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Starting test Redis..."
+docker start redis-test
+
 echo "Building out for testnet..."
 docker build -t url-shortener:test .
 
