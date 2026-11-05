@@ -3,6 +3,11 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - app.py
+      - requirements.txt
+      - Dockerfile
+      - .github/workflows/ci.yml
 
 jobs:
   build:
