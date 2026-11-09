@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - name: Check out code
@@ -40,3 +40,13 @@ jobs:
         run: |
           docker tag url-shortener:${{ github.sha }} ghcr.io/jxcarter92/url-shortener:${{ github.sha }}
           docker push ghcr.io/jxcarter92/url-shortener:${{ github.sha }}
+
+      - name: Commit and push new image tag
+        run: |
+          sed -i "s|ghcr.io/jxcarter92/url-shortener:.*|ghcr.io/jxcarter92/url-shortener:${{ github.sha }}|" deployment.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deployment.yaml
+          git commit -m "Deploy ${{ github.sha }}"
+          git push
+
