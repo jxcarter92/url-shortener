@@ -48,7 +48,7 @@ def stored_links():
     count = len(links)#length of dict with stored keys
     
     return {
-        "message": f"successfully retrieved {count} links",
+        "message": f"successfully retrieved - {count} links",
         "links": links, 
         "links_stored": count
         }#return, best practice is to have all keys: lowercase and no spaces!
