@@ -9,7 +9,7 @@ A Python URL shortener that I containerized with Docker and run on a local Kuber
 - Reads its settings from a ConfigMap and its Redis password from a Kubernetes Secret, so no passwords live in the code or the image
 - Keeps every link through Redis restarts using a persistent volume and append-only mode
 - Health checks: readiness stops traffic to pods that can't reach Redis, and liveness restarts only a truly stuck app
-- One-command start, stop, and versioned deploys with shell scripts
+- One-command start and stop scripts, and fully automated deploys on every push to main
 - /links - lists every short link with a count. Duplicate detection of shortened links within /shorten
 
 ## Tech Stack
@@ -18,7 +18,7 @@ A Python URL shortener that I containerized with Docker and run on a local Kuber
 - **Redis:** stores short codes and their URLs
 - **Docker:** packages the app into images
 - **Kubernetes (kind):** runs and manages the containers on a local cluster
-- **Bash:** automation scripts for start, stop, and deploy
+- **Bash:** automation scripts for start, stop, and local testing
 - **K3s** kubernetes running on home server
 - **Tailscale** remote access into home server
 - **GHCR** github container registry
@@ -49,7 +49,10 @@ flowchart LR
     DEV -->|git push| CODE
     CODE --> CI
     CI -->|publish| GHCR
-    DEV -->|Tailscale: ./deploy.sh, kubectl| K3S
+    CI -->|bot commits new SHA| CODE
+    ARGO -->|watches deployment.yaml| CODE
+    ARGO -->|syncs| APP
+    DEV -->|Tailscale: kubectl| K3S
     GHCR -->|pull image| APP
     SVC --> APP
     APP --> REDIS
@@ -64,7 +67,7 @@ flowchart LR
 Every push to `main` builds, scans, and publishes a new image. Deploying it is one command.
 
 ```
-git push → GitHub Actions: build → Trivy scan → publish to GHCR → ./deploy.sh → k3s rolls out
+git push → GitHub Actions: build → Trivy scan → publish to GHCR → bot commits new SHA to deployment.yaml → Argo CD rolls out
 ```
 CI only runs when files that affect the image change: app.py, requirements.txt, Dockerfile, or the workflow itself. Docs and deploy changes skip the build.
 
@@ -77,18 +80,14 @@ CI only runs when files that affect the image change: app.py, requirements.txt, 
 
 The workflow uses least-privilege permissions (`contents: read`, `packages: write`) and GitHub's built-in token, with no stored passwords.
 
-### CD (`deploy.sh`), one command
-After CI passes:
-```bash
-./deploy.sh
-```
-1. Gets the current commit SHA
-2. Updates the image tag in `deployment.yaml` with `sed`
-3. `kubectl apply`, then waits for the zero-downtime rolling update
-4. Commits and pushes the updated `deployment.yaml` with `[skip ci]`, so Git always matches what's running
+### CD: GitOps with Argo CD
+No deploy command. Every push to `main` that passes CI releases automatically:
 
-### Next: GitOps with Argo CD
-Argo CD will watch this repo and apply changes automatically, so a `git push` alone deploys.
+1. CI updates the image tag in `deployment.yaml` with `sed`, using the commit SHA it just built
+2. CI commits and pushes that change as `github-actions[bot]`
+3. Argo CD sees `deployment.yaml` change and rolls out the new pods (self-heal and prune on)
+
+If Trivy fails, every later step is skipped: no image, no commit, no deploy.
 
 ## Project structure
 
@@ -102,8 +101,7 @@ url-shortener/
 ├── service.yaml               # Service: port 80 → container port 5000
 ├── redis.yaml                 # Redis Deployment + Service (password from Secret)
 ├── configmap.yaml             # REDIS_HOST setting
-├── pvc.yaml                   # 1Gi volume so Redis data survives restarts
-├── deploy.sh                  # Deploy the current commit: update SHA, apply, rollout, commit
+├── pvc.yaml                   # 1Gi volume so Redis data survives restart
 ├── test.sh                    # Local test: build and run against a throwaway Redis
 ├── port.sh                    # Port-forward the Service to localhost:8080
 ├── start.sh                   # (kind only) start the local kind cluster
@@ -162,7 +160,7 @@ docker network rm testnet
    ```
    Then open `http://localhost:8080`.
 
-After the first deploy, release new versions with `./deploy.sh` (see [CI/CD](#cicd)).
+After the first deploy, every push to main releases automatically (see CI/CD).
 
 ## Usage
 
@@ -220,13 +218,12 @@ curl localhost:8080/healthz
 
 **Test locally first.** `test.sh` runs the real container image against a throwaway Redis on a Docker network, so I catch bugs in seconds instead of waiting on CI, and broken code never reaches production.
 
-**Automate what you understand.** I deployed by hand first (push, find the SHA, edit the YAML, apply, watch the rollout), then turned those steps into `deploy.sh`. Next, Argo CD automates the rest.
+**Automate what you understand.** I deployed by hand first (push, find the SHA, edit the YAML, apply, watch the rollout), Then I moved that job into CI and handed rollouts to Argo CD, so now git push is the whole release. Next, Argo CD automates the rest.
 
 ## Next steps
 
 - [ ] **Argo CD:** GitOps, so `git push` alone deploys
 - [ ] **CI path filters:** skip builds when only `deployment.yaml` changes
-- [ ] **deploy.sh safety check:** confirm the image exists in GHCR before deploying
 - [ ] **Ingress (Traefik):** reach the app by URL instead of port-forward
 - [ ] **Monitoring:** Prometheus and Grafana
 - [ ] **Production server:** replace Flask's development server with gunicorn
