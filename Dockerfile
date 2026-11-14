@@ -15,7 +15,7 @@ COPY app.py ./
 EXPOSE 5000
 
 # Setup an app user so the container doesn't run as the root user
-RUN useradd  useradd -u 10001 app
+RUN useradd -u 10001 app
 USER app
 
 CMD ["python", "app.py"]
