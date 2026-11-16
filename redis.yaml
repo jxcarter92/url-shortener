@@ -14,6 +14,11 @@ spec:
       labels:
         app: redis
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
       containers:
       - name: redis
         image: redis:7
@@ -26,6 +31,11 @@ spec:
               key: REDIS_PASSWORD
         ports:
         - containerPort: 6379
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: 
+            drop: ["ALL"]
         volumeMounts:
         - name: data
           mountPath: /data
