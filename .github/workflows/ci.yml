@@ -8,6 +8,7 @@ on:
       - requirements.txt
       - Dockerfile
       - .github/workflows/ci.yml
+      - test_app.py
 
 jobs:
   build:
@@ -19,6 +20,17 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v5
 
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with: 
+            python-version: "3.13"
+
+      - name: Run tests
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+          pytest
+      
       - name: Build image
         run: docker build -t url-shortener:${{ github.sha }} .
       - name: Scan image with Trivy
