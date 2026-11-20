@@ -1,0 +1,26 @@
+name: Config Scan
+
+on: 
+    push:
+        branches: [main]
+        paths:
+            - '*.yaml'
+            - argocd/application.yaml
+            - Dockerfile
+            - .github/workflows/config-scan.yml
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+            
+      - name: Scan config with Trivy
+        uses: aquasecurity/trivy-action@v0.35.0
+        with:
+            scan-type: config
+            scan-ref: .
+            severity: CRITICAL,HIGH
+            exit-code: "1"
