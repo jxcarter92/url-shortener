@@ -19,7 +19,7 @@ spec:
         runAsUser: 10001
       containers:
       - name: url-shortener
-        image: ghcr.io/jxcarter92/url-shortener:667fc96f0e850d7074b26c54b5e2d7121fa69fcb
+        image: ghcr.io/jxcarter92/url-shortener:0ea9a600c46a998104f1894987fd1d5e48f7e0d3
         ports:
         - containerPort: 5000
         securityContext:
