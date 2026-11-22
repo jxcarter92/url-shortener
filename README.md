@@ -69,9 +69,9 @@ Every push to `main` builds, scans, and publishes a new image. Deploying it is o
 ```
 git push → GitHub Actions: build → Trivy scan → publish to GHCR → bot commits new SHA to deployment.yaml → Argo CD rolls out
 ```
+```
 CI only runs when files that affect the image change: app.py, requirements.txt, Dockerfile, or the workflow itself. Docs and deploy changes skip the build.
-
-``
+```
 
 ### CI (`.github/workflows/ci.yml`), automatic on every push
 1. **Build** the Docker image, tagged with the commit SHA
