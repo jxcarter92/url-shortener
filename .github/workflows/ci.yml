@@ -28,9 +28,9 @@ jobs:
       - name: Run tests
         run: |
           pip install -r requirements.txt
-          pip install pytest
+          pip install pytest fakeredis
           pytest
-      
+
       - name: Build image
         run: docker build -t url-shortener:${{ github.sha }} .
       - name: Scan image with Trivy
