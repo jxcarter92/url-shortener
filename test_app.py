@@ -22,3 +22,15 @@ def test_shorten_new_link():
     assert response.status_code == 200
     assert len(code) == 6
     assert fake_r.get(code) == "https://github.com/jxcarter92"
+
+def test_redirect():
+    #Arrange:swap the real Redis for the dummy
+    fake_r = fakeredis.FakeRedis(decode_responses=True)
+    app_module.r = fake_r
+    fake_r.set("qRNGdA", "https://spotify.com")# save one link in the dummy for the route to find. Both values have to match from /links
+    client = app.test_client() # fake browser that visits the routes
+    # Act: visit the short link like a browser would "qRNGdA"
+    response = client.get("/qRNGdA")#check short link to see if it matches
+    # Assert:check what came out  
+    assert response.status_code == 302#302 = redirect, go over there
+    assert response.headers.get("Location") == "https://spotify.com"# redirect points to the saved URL. 'get()' looks up the key '==' checks if the value matches what was expected
