@@ -32,5 +32,20 @@ def test_redirect():
     # Act: visit the short link like a browser would "qRNGdA"
     response = client.get("/qRNGdA")#check short link to see if it matches
     # Assert:check what came out  
-    assert response.status_code == 302#302 = redirect, go over there
+    assert response.status_code == 302 #302 = redirect, go over there
     assert response.headers.get("Location") == "https://spotify.com"# redirect points to the saved URL. 'get()' looks up the key '==' checks if the value matches what was expected
+
+def test_shorten_duplicate_link():
+    #Arrange:swap the real Redis for the dummy
+    fake_r = fakeredis.FakeRedis(decode_responses=True)# make the dummy
+    app_module.r = fake_r                              # app now uses the dummy 
+    fake_r.set("url:https://youtube.com", "byftRw")    # reverse key: long URL → existing code (makes it a duplicate)
+    client = app.test_client()                         # the fake browser
+    # Act: visit the url: like a browser would - > "https://youtube.com"
+    response = client.post("/shorten", data={"url": "https://youtube.com"})# same URL as the reverse key, so it's a duplicate
+    # Assert: check what came out 
+    text = response.text.strip()# the reply, minus the trailing \n
+    assert response.status_code == 200# 200 = OK (plain text, not a redirect)
+    assert text == "Link already in use. Use code: byftRw" # app hands back the EXISTING code, not a new one
+
+        
