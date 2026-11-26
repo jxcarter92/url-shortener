@@ -42,7 +42,7 @@ def stored_links():
     links = {}#empty dict to store old links
     for key in r.scan_iter():#loop through keys: in redis using r.scan_iter, for each code, look up its URL,
         if(key.startswith("url:")):#skip any tracking keys that start with the same url
-            continue#immediately stops executing the current cycl and jumps straig to the next item
+            continue#immediately stops executing the current cycle and jumps straight to the next item
         links[key] = r.get(key)#push keys:values from redis to new dict
     
     count = len(links)#length of dict with stored keys
