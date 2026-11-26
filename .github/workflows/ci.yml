@@ -29,7 +29,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pytest fakeredis
-          pytest
+          pytest -v
 
       - name: Build image
         run: docker build -t url-shortener:${{ github.sha }} .
