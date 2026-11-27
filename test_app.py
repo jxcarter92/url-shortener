@@ -48,4 +48,24 @@ def test_shorten_duplicate_link():
     assert response.status_code == 200# 200 = OK (plain text, not a redirect)
     assert text == "Link already in use. Use code: byftRw" # app hands back the EXISTING code, not a new one
 
+def test_redirect_unknown_code():
+     #Arrange:swap the real Redis for the dummy
+    fake_r = fakeredis.FakeRedis(decode_responses=True)
+    app_module.r = fake_r
+    fake_r.set("EK0ZaQ", "https://spotify.com")# save an actual short and long url.
+    client = app.test_client()    
+    # Act: visit a different short link than what is set for fakeredis
+    response = client.get("/qRNGdA")# intentionally send the client to different short url
+    # Assert: check what came out  
+    assert response.status_code == 404# wrong url shows a "404 not found"
+    
+
+
+
+
+
+
+
+    
+    
         
